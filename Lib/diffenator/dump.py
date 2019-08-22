@@ -249,15 +249,16 @@ def dump_glyph_metrics(font):
         ]
     """
     table = DFontTableIMG(font, "metrics", renderable=True)
+    glyf = {}
+    if 'glyf' in font.ttfont:
+        glyf = font.ttfont['glyf']
 
     for name, glyph in font.glyphset.items():
-        adv = font.ttfont["hmtx"][name][0]
-        try:
-            lsb = font.ttfont["glyf"][name].xMin
-            rsb = adv - font.ttfont['glyf'][name].xMax
-        except AttributeError:
-            lsb = 0
-            rsb = 0
+        adv, lsb = font.ttfont["hmtx"][name]
+        rsb = 0
+        if name in glyf and glyf[name].numberOfContours != 0:
+            rsb = adv - glyf[name].xMax
+
         table.append({'glyph': glyph,
                 'lsb': lsb, 'rsb': rsb, 'adv': adv,
                 'string': glyph.characters,
